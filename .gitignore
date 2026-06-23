@@ -1,0 +1,23 @@
+
+# Entornos virtuales de Python
+.venv/
+venv/
+env/
+.catalogoAnime/
+
+# Caché de Python
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.pytest_cache/
+
+# BIG DATA & IA: Ignoramos los datasets pesados y binarios
+# Subiremos la estructura del código, pero no los gigas de datos crudos
+data/
+
+
+# Configuraciones de IDEs
+.vscode/
+.idea/
+*.swp
