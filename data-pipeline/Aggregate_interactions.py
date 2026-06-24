@@ -10,13 +10,11 @@ def aggregate_massive_data():
     path_usuarios = os.path.join(data_dir, "users_processed_final.csv")
     path_interacciones_comodin = os.path.join(data_dir, "interactions", "user_anime*.csv")
     
-    # 1. Escaneo perezoso de usuarios
+    # 1. Escaneo perezoso de usuarios (Ahora arrastra 'country' del pipeline anterior)
     df_users = pl.scan_csv(path_usuarios)
     
     # 2. ESCANEO MASIVO CON TIPADO FORZADO
     print("📂 Escaneando interacciones forzando tipos numéricos...")
-    # Explicación Senior: Forzamos a Polars a interpretar 'score' y 'anime_id' como enteros.
-    # Si encuentra tabuladores vacíos en esas columnas, los convertirá limpiamente en null numérico.
     df_interactions = pl.scan_csv(
         path_interacciones_comodin, 
         separator="\t",
@@ -32,26 +30,46 @@ def aggregate_massive_data():
     print("🔀 Cruzando interacciones con perfiles demográficos...")
     df_merged = df_interactions.join(df_users, on="username", how="inner")
     
-    print("📊 Filtrando y calculando métricas agregadas por nicho (Anime, Género, Edad)...")
-    # Cambios Senior: 
-    # 1. Filtramos las notas > 0 para eliminar los registros vacíos o los "plan_to_watch" sin puntuar.
-    # 2. Sacamos 'location' temporalmente de la agregación para compactar la tabla final.
-    df_stats = (df_merged
-        .filter((pl.col("score") > 0) & (pl.col("score").is_not_null()))
-        .group_by(["anime_id", "gender", "age_group"])
+    # Limpieza inicial común compartida por ambos flujos perezosos
+    df_cleaned = df_merged.filter((pl.col("score") > 0) & (pl.col("score").is_not_null()))
+    
+    print("📊 Calculando métricas agregadas por Nicho Geográfico Local...")
+    # Bloque A: Agrupación específica por país real del espectador
+    df_stats_local = (df_cleaned
+        .group_by(["anime_id", "gender", "age_group", "country"])
         .agg([
             pl.col("score").mean().alias("avg_score"),
             pl.len().alias("total_views")
         ])
-        .sort(["anime_id", "gender", "age_group"])
     )
     
-    print("🧠 Ejecutando optimizaciones de Rust en tu RAM...")
-    resultado_estadisticas = df_stats.collect()
+    print("🌍 Calculando métricas agregadas bajo el nodo común 'Global'...")
+    # Bloque B: Sobreescribimos la columna country con un literal "Global" y agrupamos
+    df_stats_global = (df_cleaned
+        .with_columns(pl.lit("Global").alias("country"))
+        .group_by(["anime_id", "gender", "age_group", "country"])
+        .agg([
+            pl.col("score").mean().alias("avg_score"),
+            pl.len().alias("total_views")
+        ])
+    )
+    
+    print("🔗 Concatenando flujos geográficos en el Grafo de Optimización...")
+    # Unimos verticalmente ambas tablas en modo perezoso y ordenamos el conjunto final
+    df_stats_final = (pl.concat([df_stats_local, df_stats_global])
+        .sort(["anime_id", "gender", "age_group", "country"])
+    )
+    
+    print("🧠 Ejecutando optimizaciones de Rust en tu RAM (Cruces y Agregaciones)...")
+    resultado_estadisticas = df_stats_final.collect()
     
     # Control de calidad en consola antes de guardar
-    print("\n👀 Muestra del resultado final:")
-    print(resultado_estadisticas.head(10))
+    print("\n👀 Muestra del resultado final consolidado (Local + Global):")
+    print(resultado_estadisticas.head(15))
+    
+    # Verificación rápida del peso del nodo por defecto
+    print("\n🌍 Muestra específica del volumen de registros del nodo Global:")
+    print(resultado_estadisticas.filter(pl.col("country") == "Global").head(5))
     
     output_path = os.path.join(data_dir, "anime_demographic_stats.csv")
     resultado_estadisticas.write_csv(output_path)

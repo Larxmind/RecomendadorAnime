@@ -22,6 +22,7 @@ def run_data_enrichment():
         "anime_id", 
         "main_pic",
         "synopsis",
+        "genres",
         "score_10_count", "score_09_count", "score_08_count", "score_07_count", "score_06_count",
         "score_05_count", "score_04_count", "score_03_count", "score_02_count", "score_01_count"
     ]
