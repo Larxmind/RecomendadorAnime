@@ -29,7 +29,7 @@ export default function RootLayout({
     >
       <head>
         {/* ⚡ Evita el bloqueo de Mixed Content con tu EC2 en HTTP */}
-        <meta httpEquiv="Content-Security-Policy" content="upgrade-insecure-requests" />
+        {/*<meta httpEquiv="Content-Security-Policy" content="upgrade-insecure-requests" />*/}
       </head>
       <body className="min-h-full flex flex-col">{children}</body>
     </html>
