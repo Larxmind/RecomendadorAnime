@@ -5,6 +5,9 @@ venv/
 env/
 .catalogoAnime/
 
+.env*.local
+.env
+
 # Caché de Python
 __pycache__/
 *.pyc
