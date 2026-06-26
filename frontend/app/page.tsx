@@ -180,26 +180,34 @@ export default function Home() {
     }
   };
 
-  useEffect(() => {
-    const loadData = async () => {
-      setLoading(true);
-      try {
-        const tagParam = selectedTagFilter ? `&filter_tag=${encodeURIComponent(selectedTagFilter)}` : "";
-        const res = await fetch(
-          `http://localhost:8000/api/v1/recommend?anime_id=${animeId}&gender=${gender}&age_group=${ageGroup}&country=${country}&alfa=${alfa}&beta=${beta}&gamma=${gamma}${tagParam}`
-        );
-        const json = await res.json();
-        setData(json);
-        setExpandedCard(null);
-      } catch (err) {
-        console.error("Error conectando con FastAPI:", err);
-      } finally {
-        setLoading(false);
-      }
-    };
+// 1. Añade este nuevo estado dentro de tu componente Home
+const [latency, setLatency] = useState<number>(0);
 
-    loadData();
-  }, [gender, ageGroup, animeId, country, alfa, beta, gamma, selectedTagFilter]);
+// 2. Modifica el useEffect del fetch para medir el tiempo exacto
+useEffect(() => {
+  const loadData = async () => {
+    setLoading(true);
+    const startTime = performance.now(); // ⏱️ Tiempo de inicio
+    try {
+      const tagParam = selectedTagFilter ? `&filter_tag=${encodeURIComponent(selectedTagFilter)}` : "";
+      const res = await fetch(
+        `http://localhost:8000/api/v1/recommend?anime_id=${animeId}&gender=${gender}&age_group=${ageGroup}&country=${country}&alfa=${alfa}&beta=${beta}&gamma=${gamma}${tagParam}`
+      );
+      const json = await res.json();
+      setData(json);
+      setExpandedCard(null);
+      
+      const endTime = performance.now(); // ⏱️ Tiempo de fin
+      setLatency(Math.round(endTime - startTime)); // Guardamos los ms reales
+    } catch (err) {
+      console.error("Error conectando con FastAPI:", err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  loadData();
+}, [gender, ageGroup, animeId, country, alfa, beta, gamma, selectedTagFilter]);
 
   const toggleExpand = (id: number) => {
     setExpandedCard(expandedCard === id ? null : id);
@@ -216,7 +224,7 @@ export default function Home() {
               Core Recomendador Anime
             </h1>
             <p className="text-slate-400 text-sm mt-1">
-              Motor Híbrido Avanzado con Apertura de Caja Negra (XAI) · Latencia Engine: <span className="text-emerald-400 font-mono">82ms</span>
+              Motor Híbrido Avanzado con Apertura de Caja Negra (XAI) · Latencia Engine: <span className="text-emerald-400 font-mono">{latency}ms</span>
             </p>
           </div>
           <div className="flex items-center gap-2 bg-slate-900 border border-slate-800 px-4 py-2 rounded-full text-xs font-mono text-slate-300 self-start md:self-auto">
