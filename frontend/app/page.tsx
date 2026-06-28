@@ -192,6 +192,11 @@ useEffect(() => {
       const tagParam = selectedTagFilter ? `&filter_tag=${encodeURIComponent(selectedTagFilter)}` : "";
       const res = await fetch(
         `${process.env.NEXT_PUBLIC_API_URL}/api/v1/recommend?anime_id=${animeId}&gender=${gender}&age_group=${ageGroup}&country=${country}&alfa=${alfa}&beta=${beta}&gamma=${gamma}${tagParam}`
+        ,{method: "GET", 
+          headers: { "Content-Type": "application/json", 
+            "ngrok-skip-browser-warning": "true" 
+          } 
+        }
       );
       const json = await res.json();
       setData(json);
