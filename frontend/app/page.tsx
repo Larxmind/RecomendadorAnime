@@ -191,7 +191,7 @@ useEffect(() => {
     try {
       const tagParam = selectedTagFilter ? `&filter_tag=${encodeURIComponent(selectedTagFilter)}` : "";
       const res = await fetch(
-        `/api/v1/recommend?anime_id=${animeId}&gender=${gender}&age_group=${ageGroup}&country=${country}&alfa=${alfa}&beta=${beta}&gamma=${gamma}${tagParam}`
+        `/v1/recommend?anime_id=${animeId}&gender=${gender}&age_group=${ageGroup}&country=${country}&alfa=${alfa}&beta=${beta}&gamma=${gamma}${tagParam}`
       );
       const json = await res.json();
       setData(json);
